@@ -48,9 +48,7 @@ module "asg" {
 
 module "key_pair" {
   source      = "terraform-aws-modules/key-pair/aws"
-  environment = var.Environment
   key_name    = format("%s-%s-key", var.Environment, var.name)
-  ssm_parameter_path = format("%s_%s_key", var.Environment, var.name)
 }
 
 resource "aws_security_group" "asg-sg" {
