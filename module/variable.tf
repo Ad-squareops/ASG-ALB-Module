@@ -4,6 +4,50 @@ variable "region" {
   default     = ""
 }
 
+variable "launch_template_name" {
+  description = "Name of launch template to be created"
+  type        = string
+  default     = ""
+}
+
+variable "launch_template_description" {
+  description = "Description of the launch template"
+  type        = string
+  default     = null
+}
+
+variable "iam_role_name" {
+  description = "Name to use on IAM role created"
+  type        = string
+  default     = null
+}
+
+variable "iam_role_path" {
+  description = "IAM role path"
+  type        = string
+  default     = null
+}
+
+variable "iam_role_description" {
+  description = "Description of the role"
+  type        = string
+  default     = null
+}
+
+variable "iam_role_policies" {
+  description = "IAM policies to attach to the IAM role"
+  type        = map(string)
+  default     = {}
+}
+
+
+variable "iam_role_tags" {
+  description = "A map of additional tags to add to the IAM role created"
+  type        = map(string)
+  default     = {}
+}
+
+
 variable "name" {
   description = "Name of the Application"
   type        = string
