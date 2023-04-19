@@ -32,7 +32,7 @@ module "asg" {
 
   launch_template_name         = "final-${local.name}"
   launch_template_description  = "Launch template example"
-  update_default_version       = true
+  update_default_version       = var.update_default_version
 
   image_id                     = var.image_id
   instance_type                = var.instance_type
