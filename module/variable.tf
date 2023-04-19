@@ -10,6 +10,12 @@ variable "launch_template_name" {
   default     = ""
 }
 
+variable "create_iam_instance_profile" {
+  description = "Determines whether an IAM instance profile is created or to use an existing IAM instance profile"
+  type        = bool
+  default     = false
+}
+
 variable "launch_template_description" {
   description = "Description of the launch template"
   type        = string
