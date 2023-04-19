@@ -4,22 +4,12 @@ variable "region" {
   default     = ""
 }
 
-variable "app_name" {
+variable "name" {
   description = "Name of the Application"
   type        = string
   default     = ""
 }
 
-variable "asg_config" {
-  description = ""
-  type        = map (string)
-}
-
-variable "vpc_zone_identifier" {
-  description = "A list of subnet IDs to launch resources in. Subnets automatically determine which availability zones the group will reside. Conflicts with `availability_zones`"
-  type        = list(string)
-  default     = []
-}
 
 variable "wait_for_capacity_timeout" {
   description = ""
