@@ -10,6 +10,31 @@ variable "name" {
   default     = ""
 }
 
+variable "update_default_version" {
+  description = "Whether to update Default Version each update. Conflicts with `default_version`"
+  type        = string
+  default     = null
+}
+
+variable "instance_name" {
+  description = "Name that is propogated to launched EC2 instances via a tag - if not provided, defaults to `var.name`"
+  type        = string
+  default     = ""
+}
+
+variable "default_instance_warmup" {
+  description = "Amount of time, in seconds, until a newly launched instance can contribute to the Amazon CloudWatch metrics. This delay lets an instance finish initializing before Amazon EC2 Auto Scaling aggregates instance metrics, resulting in more reliable usage data. Set this value equal to the amount of time that it takes for resource consumption to become stable after an instance reaches the InService state."
+  type        = number
+  default     = null
+}
+
+variable "vpc_zone_identifier" {
+  description = "A list of subnet IDs to launch resources in. Subnets automatically determine which availability zones the group will reside. Conflicts with `availability_zones`"
+  type        = list(string)
+  default     = null
+}
+
+
 variable "min_size" {
   description = "The minimum size of the autoscaling group"
   type        = number
