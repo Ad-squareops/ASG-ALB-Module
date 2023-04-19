@@ -93,7 +93,7 @@ resource "aws_security_group" "asg-sg" {
 
 resource "aws_autoscaling_policy" "asg_cpu_policy" {
   count                     = var.asg_cpu_policy ? 1 : 0
-  name                      = "${var.app_name}-cpu-policy"
+  name                      = "${var.name}-cpu-policy"
   autoscaling_group_name    = module.asg.autoscaling_group_name
   estimated_instance_warmup = 60
   policy_type               = "TargetTrackingScaling"
@@ -107,7 +107,7 @@ resource "aws_autoscaling_policy" "asg_cpu_policy" {
 
 resource "aws_autoscaling_policy" "asg_ALB_request_count_policy" {
   count                     = var.asg_ALB_request_count_policy ? 1 : 0
-  name                      = "${var.app_name}-cpu-policy"
+  name                      = "${var.name}-cpu-policy"
   autoscaling_group_name    = module.asg.autoscaling_group_name
   estimated_instance_warmup = 60
   policy_type               = "TargetTrackingScaling"
@@ -122,7 +122,7 @@ resource "aws_autoscaling_policy" "asg_ALB_request_count_policy" {
 
 resource "aws_autoscaling_policy" "RAM_based_scale_up" {
   count                  = var.asg_RAM_based_scale_up_policy ? 1 : 0
-  name                   = "${var.app_name}-asg-RAM-scale-up-policy"
+  name                   = "${var.name}-asg-RAM-scale-up-policy"
   autoscaling_group_name = module.asg.autoscaling_group_name
   adjustment_type        = "ChangeInCapacity"
   scaling_adjustment     = "1"
@@ -132,7 +132,7 @@ resource "aws_autoscaling_policy" "RAM_based_scale_up" {
 
 resource "aws_cloudwatch_metric_alarm" "RAM_based_scale_down_alarm" {
   count               = var.asg_RAM_based_scale_up_policy ? 1 : 0
-  alarm_name          = "${var.app_name}-asg-scale-up-alarm"
+  alarm_name          = "${var.name}-asg-scale-up-alarm"
   alarm_description   = "asg-scale-up-cpu-alarm"
   comparison_operator = "GreaterThanOrEqualToThreshold"
   evaluation_periods  = "2"
@@ -151,7 +151,7 @@ resource "aws_cloudwatch_metric_alarm" "RAM_based_scale_down_alarm" {
 
 resource "aws_autoscaling_policy" "RAM_based_scale_down" {
   count                  = var.asg_RAM_based_scale_down_policy ? 1 : 0
-  name                   = "${var.app_name}-asg-RAM-scale-down-policy"
+  name                   = "${var.name}-asg-RAM-scale-down-policy"
   autoscaling_group_name = module.asg.autoscaling_group_name
   adjustment_type        = "ChangeInCapacity"
   scaling_adjustment     = "-1"
@@ -161,7 +161,7 @@ resource "aws_autoscaling_policy" "RAM_based_scale_down" {
 
 resource "aws_cloudwatch_metric_alarm" "scale_down_alarm" {
   count               = var.asg_RAM_based_scale_down_policy ? 1 : 0
-  alarm_name          = "${var.app_name}-asg-scale-down-alarm"
+  alarm_name          = "${var.name}-asg-scale-down-alarm"
   alarm_description   = "asg-scale-down-cpu-alarm"
   comparison_operator = "LessThanOrEqualToThreshold"
   evaluation_periods  = "2"
