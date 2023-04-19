@@ -181,12 +181,12 @@ resource "aws_cloudwatch_metric_alarm" "scale_down_alarm" {
 }
 
 resource "aws_iam_instance_profile" "instance-profile" {
-  name = "${var.app_name}-instance-profile"
+  name = "${var.name}-instance-profile"
   role = aws_iam_role.instance-role.name
 }
 
 resource "aws_iam_role" "instance-role" {
-  name = "${var.app_name}-instance-role"
+  name = "${var.name}-instance-role"
 
 
   assume_role_policy = <<EOF
@@ -217,7 +217,7 @@ resource "aws_iam_role_policy_attachment" "cloudwatch-asg" {
 }
 
 resource "aws_iam_role_policy" "instance-profile" {
-  name = "${var.app_name}-deploy-policy"
+  name = "${var.name}-deploy-policy"
   role = aws_iam_role.instance-role.id
 
   policy = <<EOF
