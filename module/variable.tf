@@ -204,23 +204,6 @@ variable "asg_cpu_policy" {
 }
 
 
-variable "domain_name" {
-  description = "Domain Name for the application"
-  type        = string
-  default     = ""
-}
-
-variable "host_headers" {
-  description = ""
-  type        = string
-  default     = ""
-}
-
-variable "zone_id" {
-  description = "ID of the Hosted Zone of Route53"
-  type        = string
-  default     = ""
-}
 
 variable "cpu_value_threshold" {
   description = "Target value of CPU based utlization Policy"
@@ -303,51 +286,3 @@ variable "target_type" {
   default = ""
 }
 
-variable "alb_enable" {
-  type    = bool
-  default = true
-}
-
-variable "sg_enable" {
-  type    = bool
-  default = true
-}
-
-variable "route_enable" {
-  type    = bool
-  default = true
-}
-
-variable "cert_enable" {
-  type    = bool
-  default = true
-}
-
-
-variable "certificate_arn" {
-  type    = string
-  default = ""
-}
-
-variable "lb_dnsname" {
-  type    = string
-  default = ""
-}
-
-variable "hosted_zone_id" {
-  type    = string
-  default = "hosted_zone_id"
-}
-
-
-variable "vpn_security_group" {
-  description = "Security group ID Of VPN"
-  type        = string
-  default     = ""
-}
-
-variable "alb_sg_id" {
-  description = "Security group ID Of ALB"
-  type        = string
-  default     = ""
-}
