@@ -10,10 +10,12 @@ module "asg" {
   min_size                  = var.min_size
   max_size                  = var.max_size
   desired_capacity          = var.desired_capacity
+  vpc_zone_identifier       = var.vpc_zone_identifier
   wait_for_capacity_timeout = var.wait_for_capacity_timeout
   load_balancers            = var.load_balancers
   target_group_arns         = var.target_group_arns
   health_check_type         = var.health_check_type
+  default_instance_warmup   = var.default_instance_warmup
   enabled_metrics           = var.enabled_metrics
 
   instance_refresh = {
