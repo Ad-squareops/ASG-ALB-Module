@@ -85,6 +85,7 @@ resource "aws_security_group" "asg-sg" {
   }
 
   tags = {
+    Name        = var.name
     Environment = var.Environment
     Owner       = var.Owner
   }
@@ -288,4 +289,181 @@ resource "aws_iam_role_policy" "instance-profile" {
     ]
 }
 EOF
+}
+
+  
+  
+module "alb" {
+  source             = "terraform-aws-modules/alb/aws"
+  version            = "~> 6.0"
+  name               = format("%s-%s-alb", var.Environment, var.name)
+  load_balancer_type = "application"
+  vpc_id             = var.vpc_id
+  subnets            = var.public_subnets
+  security_groups    = [aws_security_group.alb-sg.id]
+
+    access_logs = {
+    bucket = "${var.name}-access-logs"
+  }
+
+  target_groups = [
+    {
+      name                  = format("%s-%s-TG", var.Environment, var.name)
+      backend_protocol      = var.backend_protocol
+      backend_port          = var.backend_port
+      target_type           = var.target_type
+      health_check          = {
+        enabled             = true
+        interval            = 6
+        path                = "/"
+        port                = "traffic-port"
+        healthy_threshold   = 2
+        unhealthy_threshold = 3
+        timeout             = 5
+        protocol            = "HTTP"
+        matcher             = "200"
+      }
+    }
+  ]
+  https_listeners = [
+    {
+      port               = 443
+      protocol           = "HTTPS"
+      certificate_arn    = var.cert_enable ? module.acm[0].acm_certificate_arn: var.certificate_arn
+      target_group_index = 0
+    }
+  ]
+  http_tcp_listeners = [
+    {
+      port        = 80
+      protocol    = "HTTP"
+      action_type = "redirect"
+      redirect = {
+        port        = "443"
+        protocol    = "HTTPS"
+        status_code = "HTTP_301"
+      }
+    }
+  ]
+  tags = {
+    name        = "${var.app_name}-alb"
+    Owner       = var.Owner
+    Environment = var.Environment
+    Terraform   = var.Terraform
+  }
+}
+
+module "route53-record" {
+  count           = var.route_enable ? 1 : 0
+  allow_overwrite = true
+  source          = "clouddrove/route53-record/aws"
+  version         = "1.0.1"
+  zone_id         = var.zone_id
+  name            = "${var.name}.${var.domain_name}"
+  type            = "A"
+  alias = {
+    name                   = var.alb_enable ? module.alb[0].lb_dns_name : var.lb_dnsname
+    zone_id                = var.alb_enable ? module.alb[0].lb_zone_id  : var.hosted_zone_id
+    evaluate_target_health = true
+  }
+}
+
+
+module "acm" {
+  count   = var.cert_enable ? 1 : 0
+  source  = "terraform-aws-modules/acm/aws"
+  version = "~> 4.0"
+
+  domain_name = "*.${var.domain_name}"
+  zone_id     = var.zone_id
+
+  subject_alternative_names = [
+    "*.${var.domain_name}",
+    "${var.app_name}.${var.domain_name}",
+    "${var.host_headers}",
+  ]
+
+  wait_for_validation = true
+
+  tags = {
+    Environment = var.Environment
+    Terraform   = true
+    Owner       = var.Owner
+    name        = var.name
+  }
+}
+
+module "s3_bucket_alb_access_logs" {
+  source  = "terraform-aws-modules/s3-bucket/aws"
+  version = "~> 3.7.0"
+
+  bucket = "${var.name}-access-logs"
+  acl    = "log-delivery-write"
+  lifecycle_rule = [
+    {
+      id      = "monthly_retention"
+      prefix  = "/"
+      enabled = true
+
+      expiration = {
+        days = 10
+      }
+    }
+  ]
+   versioning = {
+    enabled = true
+  }
+
+  force_destroy = true
+
+  attach_elb_log_delivery_policy = true
+  tags = {
+    
+    name        = "${var.name}-access-logs"
+    Environment = var.Environment
+    Terraform   = true
+    Owner       = var.Owner
+    
+  }
+}
+  
+#ALB Security Group  
+resource "aws_security_group" "alb-sg" {
+  name        = format("%s_%s_alb_sg", var.Environment, var.name)
+  description = "asg-sg"
+  vpc_id      = var.vpc_id
+  ingress {
+    from_port   = 80
+    to_port     = 80
+    protocol    = "TCP"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  ingress {
+    from_port   = 443
+    to_port     = 443
+    protocol    = "TCP"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  ingress {
+    description = "ALL"
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  egress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  tags = {
+    Name        = var.name
+    Environment = var.Environment
+    Owner       = var.Owner
+  }
 }
