@@ -27,7 +27,7 @@ module "asg" {
   }
 
 
-  launch_template_name         = "final-${local.name}"
+  launch_template_name         = "final-${var.name}"
   launch_template_description  = "Launch template example"
   update_default_version       = var.update_default_version
 
@@ -186,7 +186,7 @@ resource "aws_iam_instance_profile" "instance-profile" {
 }
 
 resource "aws_iam_role" "instance-role" {
-  name = "${var.app_name}-instance-role"
+  name = "${var.name}-instance-role"
 
 
   assume_role_policy = <<EOF
