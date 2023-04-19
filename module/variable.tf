@@ -286,3 +286,44 @@ variable "target_type" {
   default = ""
 }
 
+variable "alb_enable" {
+  type    = bool
+  default = true
+}
+
+variable "sg_enable" {
+  type    = bool
+  default = true
+}
+
+variable "route_enable" {
+  type    = bool
+  default = true
+}
+
+variable "cert_enable" {
+  type    = bool
+  default = true
+}
+
+
+variable "certificate_arn" {
+  type    = string
+  default = ""
+}
+
+variable "lb_dnsname" {
+  type    = string
+  default = ""
+}
+
+variable "hosted_zone_id" {
+  type    = string
+  default = "hosted_zone_id"
+}
+
+variable "alb_sg_id" {
+  description = "Security group ID Of ALB"
+  type        = string
+  default     = ""
+}
