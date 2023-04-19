@@ -1,3 +1,7 @@
+output "name_of_application" {
+   description = "The name of Application"
+   value       = var.name
+ }
 
 
 output "autoscaling_group_id" {
