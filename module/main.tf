@@ -1,16 +1,20 @@
+data "aws_availability_zones" "available" {}
+
 module "asg" {
   source  = "terraform-aws-modules/autoscaling/aws"
   version = "6.7.0"
-  name    = format("%s-%s-asg", var.Environment, var.app_name)
+  name    = format("%s-%s-asg", var.Environment, var.name)
 
-  min_size                     = var.asg_config.min_size
-  max_size                     = var.asg_config.max_size
-  desired_capacity             = var.asg_config.desired_capacity
-  wait_for_capacity_timeout    = var.asg_config.wait_for_capacity_timeout
-  health_check_type            = var.health_check_type
-  vpc_zone_identifier          = var.vpc_zone_identifier
-  target_group_arns            = var.alb_enable ? module.alb[0].target_group_arns : var.target_group_arn
-  enabled_metrics              = var.enabled_metrics
+  availability_zones  = var.availability_zones
+
+  min_size                  = var.min_size
+  max_size                  = var.max_size
+  desired_capacity          = var.desired_capacity
+  wait_for_capacity_timeout = var.wait_for_capacity_timeout
+  load_balancers            = var.load_balancers
+  target_group_arns         = var.target_group_arns
+  health_check_type         = var.health_check_type
+  enabled_metrics           = var.enabled_metrics
 
   instance_refresh = {
     strategy = "Rolling"
@@ -24,7 +28,7 @@ module "asg" {
   }
 
 
-  launch_template_name         = "${var.app_name}-lt"
+  launch_template_name         = "final-${local.name}"
   launch_template_description  = "Launch template example"
   update_default_version       = true
 
@@ -33,7 +37,7 @@ module "asg" {
   key_name                     = module.key_pair.key_pair_name
   ebs_optimized                = var.ebs_optimized
   enable_monitoring            = var.enable_monitoring
-  security_groups              = [module.app_asg_sg.security_group_id]
+  security_groups              = [aws_security_group.asg-sg.id]
   iam_instance_profile_name    = aws_iam_instance_profile.instance-profile.name
 
   tags = {
@@ -43,47 +47,50 @@ module "asg" {
 }
 
 module "key_pair" {
-  source      = "squareops/keypair/aws"
+  source      = "terraform-aws-modules/key-pair/aws"
   environment = var.Environment
-  key_name    = format("%s-%s-key", var.Environment, var.app_name)
-  ssm_parameter_path = format("%s_%s_key", var.Environment, var.app_name)
+  key_name    = format("%s-%s-key", var.Environment, var.name)
+  ssm_parameter_path = format("%s_%s_key", var.Environment, var.name)
 }
 
-module "app_asg_sg" {
-  source  = "terraform-aws-modules/security-group/aws"
-  version = "~> 4.13"
-  
-  name        = format("%s_%s_app_asg_sg", var.Environment, var.app_name)
+resource "aws_security_group" "asg-sg" {
+  name        = format("%s_%s_app_asg_sg", var.Environment, var.name)
   description = "Security group for Application Instances"
   vpc_id      = var.vpc_id
 
-  computed_ingress_with_source_security_group_id = [
-    {
-      from_port                = 80
-      to_port                  = 80
-      protocol                 = "tcp"
-      description              = "ALB Port"
-      source_security_group_id = var.alb_enable ? module.app_alb_sg[0].security_group_id : var.alb_sg_id
-    },
-    {
-      from_port                = 22
-      to_port                  = 22
-      protocol                 = "tcp"
-      description              = "VPN Port"
-      source_security_group_id = var.vpn_security_group
-    },
-  ]
 
-  number_of_computed_ingress_with_source_security_group_id = 2
-  egress_with_cidr_blocks = [
-    {
-      from_port   = 0
-      to_port     = 0
-      protocol    = "-1"
-      description = "outbound rule"
-      cidr_blocks = "0.0.0.0/0"
+    ingress {
+      from_port   = 22
+      to_port     = 22
+      protocol    = "TCP"
+      cidr_blocks = ["0.0.0.0/0"]
     }
-  ]
+
+    ingress {
+      from_port   = 80
+      to_port     = 80
+      protocol    = "TCP"
+      cidr_blocks = ["0.0.0.0/0"]
+    }
+
+    ingress {
+      from_port   = 3000
+      to_port     = 3000
+      protocol    = "TCP"
+      cidr_blocks     = ["0.0.0.0/0"]
+  }
+
+  egress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  tags = {
+    Environment = var.Environment
+    Owner       = var.Owner
+  }
 }
 
 
@@ -284,183 +291,4 @@ resource "aws_iam_role_policy" "instance-profile" {
     ]
 }
 EOF
-}
-
-
-
-module "app_alb_sg" {
-
-  source  = "terraform-aws-modules/security-group/aws"
-  version = "~> 4.13"
-
-  count       = var.alb_enable ? 1 : 0
-  name        = format("%s_%s_alb_sg", var.Environment, var.app_name)
-  description = "asg-sg"
-  vpc_id      = var.vpc_id
-  ingress_with_cidr_blocks = [
-    {
-      from_port   = 80
-      to_port     = 80
-      protocol    = "tcp"
-      description = "http port"
-      cidr_blocks = "0.0.0.0/0"
-    },
-    {
-      from_port   = 443
-      to_port     = 443
-      protocol    = "tcp"
-      description = "https port"
-      cidr_blocks = "0.0.0.0/0"
-    }
-  ]
-  egress_with_cidr_blocks = [
-    {
-      from_port   = 0
-      to_port     = 0
-      protocol    = "-1"
-      description = "outbound rule"
-      cidr_blocks = "0.0.0.0/0"
-    }
-  ]
-  tags = {
-    name        = "${var.app_name}-alb-sg"
-    Owner       = var.Owner
-    Environment = var.Environment
-    Terraform   = var.Terraform
-  }
-}
-
-module "alb" {
-  count              = var.alb_enable ? 1 : 0
-  source             = "terraform-aws-modules/alb/aws"
-  version            = "8.2.1"
-  name               = format("%s-%s-alb", var.Environment, var.app_name)
-  load_balancer_type = "application"
-  vpc_id             = var.vpc_id
-  subnets            = var.public_subnets
-  security_groups    = [module.app_alb_sg[0].security_group_id]
-
-    access_logs = {
-    bucket = "${var.app_name}-access-logs"
-  }
-
-  target_groups = [
-    {
-      name                  = format("%s-%s-TG", var.Environment, var.app_name)
-      backend_protocol      = var.backend_protocol
-      backend_port          = var.backend_port
-      target_type           = var.target_type
-      health_check          = {
-        enabled             = true
-        interval            = 6
-        path                = "/"
-        port                = "traffic-port"
-        healthy_threshold   = 2
-        unhealthy_threshold = 3
-        timeout             = 5
-        protocol            = "HTTP"
-        matcher             = "200"
-      }
-    }
-  ]
-  https_listeners = [
-    {
-      port               = 443
-      protocol           = "HTTPS"
-      certificate_arn    = var.cert_enable ? module.acm[0].acm_certificate_arn: var.certificate_arn
-      target_group_index = 0
-    }
-  ]
-  http_tcp_listeners = [
-    {
-      port        = 80
-      protocol    = "HTTP"
-      action_type = "redirect"
-      redirect = {
-        port        = "443"
-        protocol    = "HTTPS"
-        status_code = "HTTP_301"
-      }
-    }
-  ]
-  tags = {
-    name        = "${var.app_name}-alb"
-    Owner       = var.Owner
-    Environment = var.Environment
-    Terraform   = var.Terraform
-  }
-}
-
-module "route53-record" {
-  count           = var.route_enable ? 1 : 0
-  allow_overwrite = true
-  source          = "clouddrove/route53-record/aws"
-  version         = "1.0.1"
-  zone_id         = var.zone_id
-  name            = "${var.app_name}.${var.domain_name}"
-  type            = "A"
-  alias = {
-    name                   = var.alb_enable ? module.alb[0].lb_dns_name : var.lb_dnsname
-    zone_id                = var.alb_enable ? module.alb[0].lb_zone_id  : var.hosted_zone_id
-    evaluate_target_health = true
-  }
-}
-
-
-module "acm" {
-  count   = var.cert_enable ? 1 : 0
-  source  = "terraform-aws-modules/acm/aws"
-  version = "~> 4.0"
-
-  domain_name = "*.${var.domain_name}"
-  zone_id     = var.zone_id
-
-  subject_alternative_names = [
-    "*.${var.domain_name}",
-    "${var.app_name}.${var.domain_name}",
-    "${var.host_headers}",
-  ]
-
-  wait_for_validation = true
-
-  tags = {
-    Environment = var.Environment
-    Terraform   = true
-    Owner       = var.Owner
-    name        = var.app_name
-  }
-}
-
-module "s3_bucket_alb_access_logs" {
-  source  = "terraform-aws-modules/s3-bucket/aws"
-  version = "~> 3.7.0"
-
-  bucket = "${var.app_name}-access-logs"
-  acl    = "log-delivery-write"
-  lifecycle_rule = [
-    {
-      id      = "monthly_retention"
-      prefix  = "/"
-      enabled = true
-
-      expiration = {
-        days = 10
-      }
-    }
-  ]
-   versioning = {
-    enabled = true
-  }
-
-  force_destroy = true
-
-  attach_elb_log_delivery_policy = true
-  tags = {
-    
-    name        = "${var.app_name}-access-logs"
-    Environment = var.Environment
-    Terraform   = true
-    Owner       = var.Owner
-    
-  }
 }
