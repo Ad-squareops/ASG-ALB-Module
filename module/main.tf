@@ -346,7 +346,7 @@ module "alb" {
     }
   ]
   tags = {
-    name        = "${var.app_name}-alb"
+    name        = "${var.name}-alb"
     Owner       = var.Owner
     Environment = var.Environment
     Terraform   = var.Terraform
@@ -379,7 +379,7 @@ module "acm" {
 
   subject_alternative_names = [
     "*.${var.domain_name}",
-    "${var.app_name}.${var.domain_name}",
+    "${var.name}.${var.domain_name}",
     "${var.host_headers}",
   ]
 
