@@ -198,3 +198,4 @@ resource "aws_cloudwatch_metric_alarm" "scale_down_alarm" {
     Environment = var.Environment
   }
 }
+}
