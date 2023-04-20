@@ -2,13 +2,13 @@
 variable "Environment" {
   description = "Environment name of the project"
   type        = string
-  default     = ""
+  default     = "env"
 }
 
 variable "Owner" {
   description = "Name of the Owner"
   type        = string
-  default     = ""
+  default     = "own"
 }
 
 variable "Terraform" {
