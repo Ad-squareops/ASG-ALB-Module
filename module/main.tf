@@ -122,7 +122,7 @@ resource "aws_autoscaling_policy" "asg_ALB_request_count_policy" {
 
 resource "aws_autoscaling_policy" "RAM_based_scale_up" {
   count                  = var.asg_RAM_based_scale_up_policy ? 1 : 0
-  name                   = "${var.name}-asg-RAM-scale-up-policy"
+  name                   = "${var.app_name}-asg-RAM-scale-up-policy"
   autoscaling_group_name = module.asg.autoscaling_group_name
   adjustment_type        = "ChangeInCapacity"
   scaling_adjustment     = "1"
