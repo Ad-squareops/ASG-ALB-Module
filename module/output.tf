@@ -1,6 +1,6 @@
 output "name_of_application" {
    description = "The name of Application"
-   value       = var.name
+   value       = var.app_name
  }
 
 
