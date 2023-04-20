@@ -1,27 +1,36 @@
+#General
+variable "Environment" {
+  description = "Environment name of the project"
+  type        = string
+  default     = ""
+}
+
+variable "Owner" {
+  description = "Name of the Owner"
+  type        = string
+  default     = ""
+}
+
+variable "Terraform" {
+  description = "Created by terraform"
+  type        = bool
+  default     = true
+}
+
+variable "app_name" {
+  description = "Name of the Application"
+  type        = string
+  default     = ""
+}
+
 variable "region" {
   description = "Region where resources to be deployed"
   type        = string
   default     = ""
 }
 
-variable "launch_template_name" {
-  description = "Name of launch template to be created"
-  type        = string
-  default     = ""
-}
 
-variable "create_iam_instance_profile" {
-  description = "Determines whether an IAM instance profile is created or to use an existing IAM instance profile"
-  type        = bool
-  default     = false
-}
-
-variable "launch_template_description" {
-  description = "Description of the launch template"
-  type        = string
-  default     = null
-}
-
+# IAM role
 variable "iam_role_name" {
   description = "Name to use on IAM role created"
   type        = string
@@ -53,23 +62,127 @@ variable "iam_role_tags" {
   default     = {}
 }
 
+variable "create_iam_instance_profile" {
+  description = "Determines whether an IAM instance profile is created or to use an existing IAM instance profile"
+  type        = bool
+  default     = false
+}
 
-variable "name" {
-  description = "Name of the Application"
+variable "iam_instance_profile_arn" {
+  description = "Amazon Resource Name (ARN) of an existing IAM instance profile. Used when `create_iam_instance_profile` = `false`"
   type        = string
   default     = ""
+}
+
+
+
+#Launch Template 
+variable "launch_template_name" {
+  description = "Name of launch template to be created"
+  type        = string
+  default     = ""
+}
+
+variable "launch_template_description" {
+  description = "Description of the launch template"
+  type        = string
+  default     = "launch template example"
 }
 
 variable "update_default_version" {
   description = "Whether to update Default Version each update. Conflicts with `default_version`"
   type        = string
-  default     = null
+  default     = true
+}
+
+variable "image_id" {
+  description = "The AMI from which to launch the instance"
+  type        = string
+  default     = ""
+}
+
+variable "instance_type" {
+  description = "The type of the instance. If present then `instance_requirements` cannot be present"
+  type        = string
+  default     = "t3a.small"
 }
 
 variable "instance_name" {
   description = "Name that is propogated to launched EC2 instances via a tag - if not provided, defaults to `var.name`"
   type        = string
   default     = ""
+}
+
+variable "key_name" {
+  description = "The key name that should be used for the instance"
+  type        = string
+  default     = ""
+}
+
+variable "enable_monitoring" {
+  description = "Enables/disables detailed monitoring"
+  type        = bool
+  default     = false
+}
+
+variable "ebs_optimized" {
+  description = "If true, the launched EC2 instance will be EBS-optimized"
+  type        = bool
+  default     = true
+}
+
+variable "instance_refresh" {
+  description = "If this block is configured, start an Instance Refresh when this Auto Scaling Group is updated"
+  type        = any
+  default     = {}
+}
+
+variable "security_groups" {
+  description = "A list of security group IDs to associate"
+  type        = list(string)
+  default     = []
+}
+
+variable "subnets" {
+  description = "A list of Public Subnets to associate"
+  type        = list(string)
+  default     = []
+}
+
+variable "tags" {
+  description = "A map of tags to assign to resources"
+  type        = map(string)
+  default     = {}
+}
+
+variable "vpc_id" {
+  description = "VPC ID"
+  type        = string
+  default     = ""
+}
+
+variable "sg_enable" {
+  type    = bool
+  default = true
+}
+
+variable "certificate_arn" {
+  type    = string
+  default = ""
+}
+
+#ASG
+variable "target_group_arns" {
+  description = "A set of `aws_alb_target_group` ARNs, for use with Application or Network Load Balancing"
+  type        = list(string)
+  default     = [] 
+}
+
+
+variable "target_group_arn" {
+  description = "Value of `aws_alb_target_group` ARNs, for use with Application or Network Load Balancer"
+  type        = list(string)
+  default     = []
 }
 
 variable "default_instance_warmup" {
@@ -112,9 +225,8 @@ variable "wait_for_capacity_timeout" {
 variable "health_check_type" {
   description = ""
   type        = string
-  default     = "ELB"
+  default     = "EC2"
 }
-
 
 variable "enabled_metrics" {
   description = "A list of metrics to collect. The allowed values are `GroupDesiredCapacity`, `GroupInServiceCapacity`, `GroupPendingCapacity`, `GroupMinSize`, `GroupMaxSize`, `GroupInServiceInstances`, `GroupPendingInstances`, `GroupStandbyInstances`, `GroupStandbyCapacity`, `GroupTerminatingCapacity`, `GroupTerminatingInstances`, `GroupTotalCapacity`, `GroupTotalInstances`"
@@ -122,93 +234,16 @@ variable "enabled_metrics" {
   default     = []
 }
 
-variable "instance_refresh" {
-  description = "If this block is configured, start an Instance Refresh when this Auto Scaling Group is updated"
-  type        = any
-  default     = {}
-}
-
-variable "image_id" {
-  description = "The AMI from which to launch the instance"
-  type        = string
-  default     = ""
-}
-
-variable "instance_type" {
-  description = "The type of the instance. If present then `instance_requirements` cannot be present"
-  type        = string
-  default     = ""
-}
-
-variable "key_name" {
-  description = "The key name that should be used for the instance"
-  type        = string
-  default     = ""
-}
-
-
-variable "security_groups" {
-  description = "A list of security group IDs to associate"
-  type        = list(string)
-  default     = []
-}
-
-variable "public_subnets" {
-  description = "A list of Public Subnets to associate"
-  type        = list(string)
-  default     = []
-}
-
-variable "enable_monitoring" {
-  description = "Enables/disables detailed monitoring"
-  type        = bool
-  default     = false
-}
-
-variable "ebs_optimized" {
-  description = "If true, the launched EC2 instance will be EBS-optimized"
-  type        = bool
-  default     = false
-}
-
-variable "target_group_arns" {
-  description = "A set of `aws_alb_target_group` ARNs, for use with Application or Network Load Balancing"
-  type        = list(string)
-  default     = [] 
-}
-
-
-variable "target_group_arn" {
-  description = "Value of `aws_alb_target_group` ARNs, for use with Application or Network Load Balancer"
-  type        = list(string)
-  default     = []
-}
-
-
-variable "iam_instance_profile_arn" {
-  description = "Amazon Resource Name (ARN) of an existing IAM instance profile. Used when `create_iam_instance_profile` = `false`"
-  type        = string
-  default     = ""
-}
-
-variable "tags" {
-  description = "A map of tags to assign to resources"
-  type        = map(string)
-  default     = {}
-}
-
 variable "asg_cpu_policy" {
   description = "Enable or Disable CPU based utilization policy"
   type        = bool
-  default     = false
+  default     = true
 }
-
-
 
 variable "cpu_value_threshold" {
   description = "Target value of CPU based utlization Policy"
   type        = number
-  default     = 70
+  default     = 50
 }
 
 variable "asg_ALB_request_count_policy" {
@@ -247,46 +282,7 @@ variable "threshold_to_scale_down" {
   default     = 50
 }
 
-variable "vpc_id" {
-  description = "VPC ID"
-  type        = string
-  default     = ""
-}
 
-variable "Environment" {
-  description = "Environment name of the project"
-  type        = string
-  default     = ""
-}
-
-variable "Owner" {
-  description = "Name of the Owner"
-  type        = string
-  default     = ""
-}
-
-variable "Terraform" {
-  description = "Created by terraform"
-  type        = bool
-  default     = true
-}
-
-variable "sg_enable" {
-  type    = bool
-  default = true
-}
-
-
-variable "certificate_arn" {
-  type    = string
-  default = ""
-}
-
-variable "alb_sg_id" {
-  description = "Security group ID Of ALB"
-  type        = string
-  default     = ""
-}
 
 #ALB
 variable "load_balancer_type" {
@@ -349,6 +345,8 @@ variable "http_tcp_listener_rules" {
   default     = []
 }
 
+
+
 #route53
 variable "route_enable" {
   type    = bool
@@ -369,6 +367,8 @@ variable "alb_enable" {
   type    = bool
   default = true
 }
+
+
 
 #acm
 variable "domain_name" {
