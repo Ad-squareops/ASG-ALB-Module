@@ -369,3 +369,36 @@ variable "http_tcp_listener_rules" {
   type        = any
   default     = []
 }
+
+#route 53
+variable "zone_id" {
+  description = "ID of DNS zone"
+  type        = string
+  default     = null
+}
+
+variable "zone_name" {
+  description = "Name of DNS zone"
+  type        = string
+  default     = null
+}
+
+#acm
+variable "domain_name" {
+  description = "A domain name for which the certificate should be issued"
+  type        = string
+  default     = ""
+}
+
+variable "zone_id" {
+  description = "The ID of the hosted zone to contain this record. Required when validating via Route53"
+  type        = string
+  default     = ""
+}
+
+variable "subject_alternative_names" {
+  description = "A list of domains that should be SANs in the issued certificate"
+  type        = list(string)
+  default     = []
+}
+
