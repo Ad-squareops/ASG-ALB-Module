@@ -377,11 +377,6 @@ variable "zone_id" {
   default     = null
 }
 
-variable "zone_name" {
-  description = "Name of DNS zone"
-  type        = string
-  default     = null
-}
 
 #acm
 variable "domain_name" {
