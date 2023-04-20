@@ -46,11 +46,6 @@ variable "iam_role_policies" {
   default     = {}
 }
 
-variable "load_balancer_type" {
-  description = "The type of load balancer to create. Possible values are application or network."
-  type        = string
-  default     = "application"
-}
 
 variable "iam_role_tags" {
   description = "A map of additional tags to add to the IAM role created"
@@ -276,37 +271,7 @@ variable "Terraform" {
   default     = true
 }
 
-variable "backend_protocol" {
-  type    = string
-  default = ""
-}
-
-variable "backend_port" {
-  type    = number
-  default = 0
-}
-
-variable "target_type" {
-  type    = string
-  default = ""
-}
-
-variable "alb_enable" {
-  type    = bool
-  default = true
-}
-
 variable "sg_enable" {
-  type    = bool
-  default = true
-}
-
-variable "route_enable" {
-  type    = bool
-  default = true
-}
-
-variable "cert_enable" {
   type    = bool
   default = true
 }
@@ -317,32 +282,41 @@ variable "certificate_arn" {
   default = ""
 }
 
-variable "lb_dnsname" {
-  type    = string
-  default = ""
-}
-
-variable "load_balancer_type" {
-  description = "The type of load balancer to create. Possible values are application or network."
-  type        = string
-  default     = "application"
-}
-
-variable "hosted_zone_id" {
-  type    = string
-  default = "hosted_zone_id"
-}
-
 variable "alb_sg_id" {
   description = "Security group ID Of ALB"
   type        = string
   default     = ""
 }
 
-variable "subnets" {
+#ALB
+variable "load_balancer_type" {
+  description = "The type of load balancer to create. Possible values are application or network."
+  type        = string
+  default     = "application"
+}
+
+variable "public_subnets" {
   description = "A list of subnets to associate with the load balancer. e.g. ['subnet-1a2b3c4d','subnet-1a2b3c4e','subnet-1a2b3c4f']"
   type        = list(string)
   default     = null
+}
+
+variable "backend_protocol" {
+  description = "backend protocol Of ALB"
+  type        = string
+  default     = "HTTP"
+}
+
+variable "backend_port" {
+  description = "backend port Of ALB"
+  type        = number
+  default     = "80"
+}
+
+variable "target_type" {
+  description = ""
+  type        = string
+  default     = "instance"
 }
 
 variable "target_groups" {
@@ -375,19 +349,38 @@ variable "http_tcp_listener_rules" {
   default     = []
 }
 
-#route 53
-variable "zone_id" {
-  description = "ID of DNS zone"
-  type        = string
-  default     = null
+#route53
+variable "route_enable" {
+  type    = bool
+  default = true
 }
 
+variable "hosted_zone_id" {
+  type    = string
+  default = "hosted_zone_id"
+}
+
+variable "lb_dnsname" {
+  type    = string
+  default = ""
+}
+
+variable "alb_enable" {
+  type    = bool
+  default = true
+}
 
 #acm
 variable "domain_name" {
   description = "A domain name for which the certificate should be issued"
   type        = string
   default     = ""
+}
+
+variable "zone_id" {
+  description = "ID of DNS zone"
+  type        = string
+  default     = null
 }
 
 variable "subject_alternative_names" {
@@ -400,4 +393,9 @@ variable "host_headers" {
   description = "A domain name for which the certificate should be issued"
   type        = string
   default     = ""
+}
+
+variable "cert_enable" {
+  type    = bool
+  default = true
 }
