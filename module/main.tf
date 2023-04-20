@@ -359,10 +359,10 @@ module "route53-record" {
   source          = "clouddrove/route53-record/aws"
   version         = "1.0.1"
   zone_id         = var.zone_id
-  zone_name       = "${var.name}.${var.domain_name}"
+  name       = "${var.name}.${var.domain_name}"
   type            = "A"
   alias = {
-    zone_name              = var.alb_enable ? module.alb[0].lb_dns_name : var.lb_dnsname
+    name              = var.alb_enable ? module.alb[0].lb_dns_name : var.lb_dnsname
     zone_id                = var.alb_enable ? module.alb[0].lb_zone_id  : var.hosted_zone_id
     evaluate_target_health = true
   }
