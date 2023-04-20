@@ -390,12 +390,6 @@ variable "domain_name" {
   default     = ""
 }
 
-variable "zone_id" {
-  description = "The ID of the hosted zone to contain this record. Required when validating via Route53"
-  type        = string
-  default     = ""
-}
-
 variable "subject_alternative_names" {
   description = "A list of domains that should be SANs in the issued certificate"
   type        = list(string)
