@@ -359,7 +359,7 @@ module "route53-record" {
   source          = "clouddrove/route53-record/aws"
   version         = "1.0.1"
   zone_id         = var.zone_id
-  name            = "${var.name}.${var.domain_name}"
+  zone_name       = "${var.name}.${var.domain_name}"
   type            = "A"
   alias = {
     name                   = var.alb_enable ? module.alb[0].lb_dns_name : var.lb_dnsname
@@ -430,7 +430,7 @@ module "s3_bucket_alb_access_logs" {
 #ALB Security Group  
 resource "aws_security_group" "alb-sg" {
   name        = format("%s_%s_alb_sg", var.Environment, var.name)
-  description = "asg-sg"
+  description = "alb-sg"
   vpc_id      = var.vpc_id
   ingress {
     from_port   = 80
