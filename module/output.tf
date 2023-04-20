@@ -46,7 +46,7 @@ output "lb_id" {
 
 output "lb_arn" {
   description = "The ID and ARN of the load balancer we created."
-  value       = var.alb_enable ? module.alb[0].lb_arn : null
+  value       = var.alb_enable ? module.alb[0].arn : null
 }
 
 output "lb_dns_name" {
