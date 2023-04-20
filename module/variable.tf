@@ -391,3 +391,8 @@ variable "subject_alternative_names" {
   default     = []
 }
 
+variable "host_headers" {
+  description = "A domain name for which the certificate should be issued"
+  type        = string
+  default     = ""
+}
