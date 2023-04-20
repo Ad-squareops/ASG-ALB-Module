@@ -1,7 +1,7 @@
 module "asg" {
   source  = "terraform-aws-modules/autoscaling/aws"
   version = "6.7.0"
-  name    = format("%s-%s-asg", var.Environment, var.name)
+  name    = format("%s-%s-asg", var.Environment, var.app_name)
 
   min_size                  = var.min_size
   max_size                  = var.max_size
