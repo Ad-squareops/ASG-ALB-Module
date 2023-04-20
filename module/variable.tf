@@ -23,6 +23,12 @@ variable "app_name" {
   default     = ""
 }
 
+variable "name" {
+  description = "Name of the Application"
+  type        = string
+  default     = ""
+}
+
 variable "region" {
   description = "Region where resources to be deployed"
   type        = string
