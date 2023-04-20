@@ -295,7 +295,7 @@ EOF
 module "alb" {
   source             = "terraform-aws-modules/alb/aws"
   version            = "~> 6.0"
-  name               = format("%s-%s-alb", var.Environment, var.app_name)
+  name               = format("%s_%snew_alb", var.Environment, var.app_name)
   load_balancer_type = var.load_balancer_type
   vpc_id             = var.vpc_id
   subnets            = var.public_subnets
@@ -303,7 +303,7 @@ module "alb" {
 
   target_groups = [
     {
-      name                  = format("%s-%s-TG", var.Environment, var.app_name)
+      name                  = format("%s_%snew_TG", var.Environment, var.app_name)
       backend_protocol      = var.backend_protocol
       backend_port          = var.backend_port
       target_type           = var.target_type
