@@ -399,8 +399,8 @@ module "route53-record" {
   name            = "${var.app_name}.${var.domain_name}"
   type            = "A"
   alias = {
-    name                   = var.alb_enable ? module.alb[0].lb_dns_name : var.lb_dnsname
-    zone_id                = var.alb_enable ? module.alb[0].lb_zone_id  : var.hosted_zone_id
+    name                   = var.alb_enable ? module.alb.lb_dns_name : var.lb_dnsname
+    zone_id                = var.alb_enable ? module.alb.lb_zone_id  : var.hosted_zone_id
     evaluate_target_health = true
   }
 }
