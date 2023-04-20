@@ -351,7 +351,7 @@ module "alb" {
 
 #ALB Security Group  
 resource "aws_security_group" "alb-sg" {
-  name        = format("%s_%s_alb_sg", var.Environment, var.name)
+  name        = format("%s_%s_alb_sg", var.Environment, var.app_name)
   description = "alb-sg"
   vpc_id      = var.vpc_id
   ingress {
