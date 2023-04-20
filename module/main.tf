@@ -51,7 +51,7 @@ module "key_pair" {
 }
 
 resource "aws_security_group" "asg-sg" {
-  name        = format("%s_%s_app_asg_sg", var.Environment, var.app_name)
+  name        = format("%s-%s-app_asg_sg", var.Environment, var.app_name)
   description = "Security group for Application Instances"
   vpc_id      = var.vpc_id
 
@@ -295,7 +295,7 @@ EOF
 module "alb" {
   source             = "terraform-aws-modules/alb/aws"
   version            = "~> 6.0"
-  name               = format("%s_%snew_alb", var.Environment, var.app_name)
+  name               = format("%s-%salb", var.Environment, var.app_name)
   load_balancer_type = var.load_balancer_type
   vpc_id             = var.vpc_id
   subnets            = var.public_subnets
@@ -303,7 +303,7 @@ module "alb" {
 
   target_groups = [
     {
-      name                  = format("%s_%snew_TG", var.Environment, var.app_name)
+      name                  = format("%s-%sTG", var.Environment, var.app_name)
       backend_protocol      = var.backend_protocol
       backend_port          = var.backend_port
       target_type           = var.target_type
@@ -350,7 +350,7 @@ module "alb" {
 
 #ALB Security Group  
 resource "aws_security_group" "alb-sg" {
-  name        = format("%s_%s_alb_sg", var.Environment, var.app_name)
+  name        = format("%s-%s-alb-sg", var.Environment, var.app_name)
   description = "alb-sg"
   vpc_id      = var.vpc_id
   ingress {
