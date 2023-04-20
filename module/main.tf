@@ -1,5 +1,3 @@
-data "aws_availability_zones" "available" {}
-
 module "asg" {
   source  = "terraform-aws-modules/autoscaling/aws"
   version = "6.7.0"
@@ -26,11 +24,10 @@ module "asg" {
     triggers = ["tag"]
   }
 
-
-  launch_template_name         = "final-${var.name}"
+ # Launch template
+  launch_template_name         = "${var.app_name}-lt"
   launch_template_description  = "Launch template example"
   update_default_version       = var.update_default_version
-
   image_id                     = var.image_id
   instance_type                = var.instance_type
   key_name                     = module.key_pair.key_pair_name
@@ -42,19 +39,21 @@ module "asg" {
   tags = {
     Environment = var.Environment
     Owner       = var.Owner
+    Name        = var.app_name
   }
 }
 
 module "key_pair" {
-  source      = "terraform-aws-modules/key-pair/aws"
-  key_name    = format("%s-%s-key", var.Environment, var.name)
+  source      = "squareops/keypair/aws"
+  environment = var.Environment
+  key_name    = format("%s-%s-key", var.Environment, var.app_name)
+  ssm_parameter_path = format("%s_%s_key", var.Environment, var.app_name)
 }
 
 resource "aws_security_group" "asg-sg" {
-  name        = format("%s_%s_app_asg_sg", var.Environment, var.name)
+  name        = format("%s_%s_app_asg_sg", var.Environment, var.app_name)
   description = "Security group for Application Instances"
   vpc_id      = var.vpc_id
-
 
     ingress {
       from_port   = 22
@@ -71,9 +70,9 @@ resource "aws_security_group" "asg-sg" {
     }
 
     ingress {
-      from_port   = 3000
-      to_port     = 3000
-      protocol    = "TCP"
+      from_port   = 0
+      to_port     = 0
+      protocol    = "-1"
       cidr_blocks     = ["0.0.0.0/0"]
   }
 
@@ -85,7 +84,7 @@ resource "aws_security_group" "asg-sg" {
   }
 
   tags = {
-    Name        = var.name
+    Name        = var.app_name
     Environment = var.Environment
     Owner       = var.Owner
   }
@@ -94,7 +93,7 @@ resource "aws_security_group" "asg-sg" {
 
 resource "aws_autoscaling_policy" "asg_cpu_policy" {
   count                     = var.asg_cpu_policy ? 1 : 0
-  name                      = "${var.name}-cpu-policy"
+  name                      = "${var.app_name}-cpu-policy"
   autoscaling_group_name    = module.asg.autoscaling_group_name
   estimated_instance_warmup = 60
   policy_type               = "TargetTrackingScaling"
@@ -108,7 +107,7 @@ resource "aws_autoscaling_policy" "asg_cpu_policy" {
 
 resource "aws_autoscaling_policy" "asg_ALB_request_count_policy" {
   count                     = var.asg_ALB_request_count_policy ? 1 : 0
-  name                      = "${var.name}-cpu-policy"
+  name                      = "${var.app_name}-cpu-policy"
   autoscaling_group_name    = module.asg.autoscaling_group_name
   estimated_instance_warmup = 60
   policy_type               = "TargetTrackingScaling"
@@ -131,9 +130,9 @@ resource "aws_autoscaling_policy" "RAM_based_scale_up" {
   policy_type            = "SimpleScaling"
 }
 
-resource "aws_cloudwatch_metric_alarm" "RAM_based_scale_down_alarm" {
+resource "aws_cloudwatch_metric_alarm" "RAM_based_scale_up_alarm" {
   count               = var.asg_RAM_based_scale_up_policy ? 1 : 0
-  alarm_name          = "${var.name}-asg-scale-up-alarm"
+  alarm_name          = "${var.app_name}-asg-scale-up-alarm"
   alarm_description   = "asg-scale-up-cpu-alarm"
   comparison_operator = "GreaterThanOrEqualToThreshold"
   evaluation_periods  = "2"
@@ -152,7 +151,7 @@ resource "aws_cloudwatch_metric_alarm" "RAM_based_scale_down_alarm" {
 
 resource "aws_autoscaling_policy" "RAM_based_scale_down" {
   count                  = var.asg_RAM_based_scale_down_policy ? 1 : 0
-  name                   = "${var.name}-asg-RAM-scale-down-policy"
+  name                   = "${var.app_name}-asg-RAM-scale-down-policy"
   autoscaling_group_name = module.asg.autoscaling_group_name
   adjustment_type        = "ChangeInCapacity"
   scaling_adjustment     = "-1"
@@ -162,7 +161,7 @@ resource "aws_autoscaling_policy" "RAM_based_scale_down" {
 
 resource "aws_cloudwatch_metric_alarm" "scale_down_alarm" {
   count               = var.asg_RAM_based_scale_down_policy ? 1 : 0
-  alarm_name          = "${var.name}-asg-scale-down-alarm"
+  alarm_name          = "${var.app_name}-asg-scale-down-alarm"
   alarm_description   = "asg-scale-down-cpu-alarm"
   comparison_operator = "LessThanOrEqualToThreshold"
   evaluation_periods  = "2"
@@ -182,12 +181,12 @@ resource "aws_cloudwatch_metric_alarm" "scale_down_alarm" {
 }
 
 resource "aws_iam_instance_profile" "instance-profile" {
-  name = "${var.name}-instance-profile"
+  name = "${var.app_name}-instance-profile"
   role = aws_iam_role.instance-role.name
 }
 
 resource "aws_iam_role" "instance-role" {
-  name = "${var.name}-instance-role"
+  name = "${var.app_name}-instance-role"
 
 
   assume_role_policy = <<EOF
@@ -218,7 +217,7 @@ resource "aws_iam_role_policy_attachment" "cloudwatch-asg" {
 }
 
 resource "aws_iam_role_policy" "instance-profile" {
-  name = "${var.name}-deploy-policy"
+  name = "${var.app_name}-deploy-policy"
   role = aws_iam_role.instance-role.id
 
   policy = <<EOF
