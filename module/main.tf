@@ -391,6 +391,7 @@ resource "aws_security_group" "alb-sg" {
 
 module "route53-record" {
   count           = var.route_enable ? 1 : 0
+  depends_on      = [module.alb[0]]
   allow_overwrite = true
   source          = "clouddrove/route53-record/aws"
   version         = "1.0.1"
