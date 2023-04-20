@@ -46,6 +46,11 @@ variable "iam_role_policies" {
   default     = {}
 }
 
+variable "load_balancer_type" {
+  description = "The type of load balancer to create. Possible values are application or network."
+  type        = string
+  default     = "application"
+}
 
 variable "iam_role_tags" {
   description = "A map of additional tags to add to the IAM role created"
