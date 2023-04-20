@@ -384,7 +384,7 @@ resource "aws_security_group" "alb-sg" {
   }
 
   tags = {
-    Name        = var.name
+    Name        = "${var.app_name}-alb-sg"
     Environment = var.Environment
     Owner       = var.Owner
   }
