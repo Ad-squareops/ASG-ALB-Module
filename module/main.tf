@@ -293,6 +293,7 @@ EOF
   
   
 module "alb" {
+  count              = var.alb_enable ? 1 : 0
   source             = "terraform-aws-modules/alb/aws"
   version            = "~> 6.0"
   name               = format("%s-%salb", var.Environment, var.app_name)
