@@ -292,3 +292,133 @@ EOF
 
   
   
+module "alb" {
+  source             = "terraform-aws-modules/alb/aws"
+  version            = "~> 6.0"
+  name               = format("%s-%salb", var.Environment, var.app_name)
+  load_balancer_type = var.load_balancer_type
+  vpc_id             = var.vpc_id
+  subnets            = var.public_subnets
+  security_groups    = [aws_security_group.alb-sg.id]
+
+  target_groups = [
+    {
+      name                  = format("%s-%sTG", var.Environment, var.app_name)
+      backend_protocol      = var.backend_protocol
+      backend_port          = var.backend_port
+      target_type           = var.target_type
+      health_check          = {
+        enabled             = true
+        interval            = 6
+        path                = "/"
+        port                = "traffic-port"
+        healthy_threshold   = 2
+        unhealthy_threshold = 3
+        timeout             = 5
+        protocol            = "HTTP"
+        matcher             = "200"
+      }
+    }
+  ]
+  https_listeners = [
+    {
+      port               = 443
+      protocol           = "HTTPS"
+      certificate_arn    = var.cert_enable ? module.acm[0].acm_certificate_arn: var.certificate_arn
+      target_group_index = 0
+    }
+  ]
+  http_tcp_listeners = [
+    {
+      port        = 80
+      protocol    = "HTTP"
+      action_type = "redirect"
+      redirect = {
+        port        = "443"
+        protocol    = "HTTPS"
+        status_code = "HTTP_301"
+      }
+    }
+  ]
+  tags = {
+    Name        = "${var.app_name}-alb"
+    Owner       = var.Owner
+    Environment = var.Environment
+    Terraform   = var.Terraform
+  }
+}
+
+#ALB Security Group  
+resource "aws_security_group" "alb-sg" {
+  name        = format("%s-%s-alb-sg", var.Environment, var.app_name)
+  description = "alb-sg"
+  vpc_id      = var.vpc_id
+  ingress {
+    from_port   = 80
+    to_port     = 80
+    protocol    = "TCP"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  ingress {
+    from_port   = 443
+    to_port     = 443
+    protocol    = "TCP"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  ingress {
+    description = "ALL"
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  egress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  tags = {
+    Name        = "${var.app_name}-alb-sg"
+    Environment = var.Environment
+    Owner       = var.Owner
+  }
+}  
+
+module "route53-record" {
+  count           = var.route_enable ? 1 : 0
+  depends_on      = [module.alb[0]]
+  allow_overwrite = true
+  source          = "clouddrove/route53-record/aws"
+  version         = "1.0.1"
+  zone_id         = var.zone_id
+  name            = "${var.app_name}.${var.domain_name}"
+  type            = "A"
+  alias = {
+    name                   = var.alb_enable ? module.alb[0].lb_dns_name : var.lb_dnsname
+    zone_id                = var.alb_enable ? module.alb[0].lb_zone_id  : var.hosted_zone_id
+    evaluate_target_health = true
+  }
+}
+
+
+module "acm" {
+  count   = var.cert_enable ? 1 : 0
+  source  = "terraform-aws-modules/acm/aws"
+  version = "~> 4.0"
+
+  domain_name = "${var.app_name}.${var.domain_name}"
+  zone_id     = var.zone_id
+  wait_for_validation = true
+
+  tags = {
+    Environment = var.Environment
+    Terraform   = true
+    Owner       = var.Owner
+    Name        = var.app_name
+  }
+}
