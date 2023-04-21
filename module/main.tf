@@ -309,18 +309,19 @@ module "alb" {
       backend_port          = var.backend_port
       target_type           = var.target_type
       health_check          = {
-        enabled             = true
-        interval            = 6
+        enabled             = var.enabled
+        interval            = var.interval
         path                = "/"
         port                = "traffic-port"
-        healthy_threshold   = 2
-        unhealthy_threshold = 3
-        timeout             = 5
-        protocol            = "HTTP"
-        matcher             = "200"
+        healthy_threshold   = var.healthy_threshold
+        unhealthy_threshold = var.unhealthy_threshold
+        timeout             = 4
+        protocol            = var.protocol
+        matcher             = var.matcher
       }
     }
   ]
+  
   https_listeners = [
     {
       port               = 443
