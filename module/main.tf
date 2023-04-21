@@ -399,8 +399,8 @@ module "route53-record" {
   name            = "${var.app_name}.${var.domain_name}"
   type            = "A"
   alias = {
-    name                   = var.alb_enable ? module.alb.lb_dns_name : var.lb_dnsname
-    zone_id                = var.alb_enable ? module.alb.lb_zone_id  : var.hosted_zone_id
+    name                   = var.alb_enable ? module.alb[0].lb_dns_name : var.lb_dnsname
+    zone_id                = var.alb_enable ? module.alb[0].lb_zone_id  : var.hosted_zone_id
     evaluate_target_health = true
   }
 }
@@ -411,15 +411,8 @@ module "acm" {
   source  = "terraform-aws-modules/acm/aws"
   version = "~> 4.0"
 
-  domain_name = "*.${var.domain_name}"
+  domain_name = "${var.app_name}.${var.domain_name}"
   zone_id     = var.zone_id
-
-  subject_alternative_names = [
-    "*.${var.domain_name}",
-    "${var.app_name}.${var.domain_name}",
-    "${var.host_headers}",
-  ]
-
   wait_for_validation = true
 
   tags = {
