@@ -304,7 +304,7 @@ module "alb" {
 
   target_groups = [
     {
-      name                  = format("%s-%sTG", var.Environment, var.app_name)
+      name                  = format("%s-%s-TG", var.Environment, var.app_name)
       backend_protocol      = var.backend_protocol
       backend_port          = var.backend_port
       target_type           = var.target_type
@@ -392,7 +392,7 @@ resource "aws_security_group" "alb-sg" {
 
 module "route53-record" {
   count           = var.route_enable ? 1 : 0
-  depends_on      = [module.alb[0]]
+  #depends_on      = [module.alb[0]]
   allow_overwrite = true
   source          = "clouddrove/route53-record/aws"
   version         = "1.0.1"
