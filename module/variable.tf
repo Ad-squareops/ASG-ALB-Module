@@ -327,6 +327,48 @@ variable "target_groups" {
   default     = []
 }
 
+variable "enabled" {
+  description = "health check enabled"
+  type        = bool
+  default     = true
+}
+
+variable "interval" {
+  description = "health check interval"
+  type        = number
+  default     = 5
+}
+
+variable "path" {
+  description = "health check path"
+  type        = string
+  default     = "/"
+}
+
+variable "healthy_threshold" {
+  description = "health check healthy_threshold"
+  type        = number
+  default     = 2
+}
+
+variable "unhealthy_threshold" {
+  description = "health check unhealthy_threshold"
+  type        = number
+  default     = 3
+}
+
+variable "protocol" {
+  description = "health check protocol"
+  type        = string
+  default     = "HTTP"
+}
+
+variable "matcher" {
+  description = "health check matcher"
+  type        = number
+  default     = 200
+}
+
 variable "https_listeners" {
   description = "A list of maps describing the HTTPS listeners for this ALB. Required key/values: port, certificate_arn. Optional key/values: ssl_policy (defaults to ELBSecurityPolicy-2016-08), target_group_index (defaults to https_listeners[count.index])"
   type        = any
