@@ -8,7 +8,7 @@ module "asg" {
   desired_capacity          = var.desired_capacity
   vpc_zone_identifier       = var.vpc_zone_identifier
   wait_for_capacity_timeout = var.wait_for_capacity_timeout
-  target_group_arns         = var.target_group_arns
+  target_group_arns         = var.alb_enable ? module.alb[0].target_group_arns : var.target_group_arn
   health_check_type         = var.health_check_type
   default_instance_warmup   = var.default_instance_warmup
   enabled_metrics           = var.enabled_metrics
