@@ -1,48 +1,3 @@
-module "asg" {
-  source  = "terraform-aws-modules/autoscaling/aws"
-  version = "6.7.0"
-  name    = format("%s-%s-asg", var.Environment, var.app_name)
-
-  min_size                  = var.min_size
-  max_size                  = var.max_size
-  desired_capacity          = var.desired_capacity
-  vpc_zone_identifier       = var.vpc_zone_identifier
-  wait_for_capacity_timeout = var.wait_for_capacity_timeout
-  target_group_arns         = var.alb_enable ? module.alb[0].target_group_arns : var.target_group_arn
-  health_check_type         = var.health_check_type
-  default_instance_warmup   = var.default_instance_warmup
-  enabled_metrics           = var.enabled_metrics
-
-  instance_refresh = {
-    strategy = "Rolling"
-    preferences = {
-      checkpoint_delay         = 60
-      checkpoint_percentages   = [35, 70, 100]
-      instance_warmup          = 300
-      min_healthy_percentage   = 50
-    }
-    triggers = ["tag"]
-  }
-
- # Launch template
-  launch_template_name         = "${var.app_name}-lt"
-  launch_template_description  = "Launch template example"
-  update_default_version       = var.update_default_version
-  image_id                     = var.image_id
-  instance_type                = var.instance_type
-  key_name                     = module.key_pair.key_pair_name
-  ebs_optimized                = var.ebs_optimized
-  enable_monitoring            = var.enable_monitoring
-  security_groups              = [aws_security_group.asg-sg.id]
-  iam_instance_profile_name    = aws_iam_instance_profile.instance-profile.name
-
-  tags = {
-    Environment = var.Environment
-    Owner       = var.Owner
-    Name        = var.app_name
-  }
-}
-
 module "key_pair" {
   source      = "squareops/keypair/aws"
   environment = var.Environment
@@ -90,6 +45,50 @@ resource "aws_security_group" "asg-sg" {
   }
 }
 
+module "asg" {
+  source  = "terraform-aws-modules/autoscaling/aws"
+  version = "6.7.0"
+  name    = format("%s-%s-asg", var.Environment, var.app_name)
+
+  min_size                  = var.min_size
+  max_size                  = var.max_size
+  desired_capacity          = var.desired_capacity
+  vpc_zone_identifier       = var.vpc_zone_identifier
+  wait_for_capacity_timeout = var.wait_for_capacity_timeout
+  target_group_arns         = var.alb_enable ? module.alb[0].target_group_arns : var.target_group_arn
+  health_check_type         = var.health_check_type
+  default_instance_warmup   = var.default_instance_warmup
+  enabled_metrics           = var.enabled_metrics
+
+  instance_refresh = {
+    strategy = "Rolling"
+    preferences = {
+      checkpoint_delay         = 60
+      checkpoint_percentages   = [35, 70, 100]
+      instance_warmup          = 300
+      min_healthy_percentage   = 50
+    }
+    triggers = ["tag"]
+  }
+
+ # Launch template
+  launch_template_name         = "${var.app_name}-lt"
+  launch_template_description  = "Launch template example"
+  update_default_version       = var.update_default_version
+  image_id                     = var.image_id
+  instance_type                = var.instance_type
+  key_name                     = module.key_pair.key_pair_name
+  ebs_optimized                = var.ebs_optimized
+  enable_monitoring            = var.enable_monitoring
+  security_groups              = [aws_security_group.asg-sg.id]
+  iam_instance_profile_name    = aws_iam_instance_profile.instance-profile.name
+
+  tags = {
+    Environment = var.Environment
+    Owner       = var.Owner
+    Name        = var.app_name
+  }
+}
 
 resource "aws_autoscaling_policy" "asg_cpu_policy" {
   count                     = var.asg_cpu_policy ? 1 : 0
@@ -180,117 +179,49 @@ resource "aws_cloudwatch_metric_alarm" "scale_down_alarm" {
   ]
 }
 
-resource "aws_iam_instance_profile" "instance-profile" {
-  name = "${var.app_name}-instance-profile"
-  role = aws_iam_role.instance-role.name
-}
-
-resource "aws_iam_role" "instance-role" {
-  name = "${var.app_name}-instance-role"
-
-
-  assume_role_policy = <<EOF
-{
-    "Version": "2012-10-17",
-    "Statement": [
-        {
-            "Sid": "",
-            "Effect": "Allow",
-            "Principal": {
-                "Service": "ec2.amazonaws.com"
-            },
-            "Action": "sts:AssumeRole"
-        }
-    ]
-}
-EOF
-}
-
-resource "aws_iam_role_policy_attachment" "ssm-policy" {
-  role       = aws_iam_role.instance-role.name
-  policy_arn = "arn:aws:iam::aws:policy/AmazonSSMFullAccess"
-}
-
-resource "aws_iam_role_policy_attachment" "cloudwatch-asg" {
-  role       = aws_iam_role.instance-role.name
-  policy_arn = "arn:aws:iam::aws:policy/CloudWatchAgentServerPolicy"
-}
-
-resource "aws_iam_role_policy" "instance-profile" {
-  name = "${var.app_name}-deploy-policy"
-  role = aws_iam_role.instance-role.id
-
-  policy = <<EOF
-{
-    "Version": "2012-10-17",
-    "Statement": [
-        {
-            "Effect": "Allow",
-            "Action": [
-                "autoscaling:CompleteLifecycleAction",
-                "autoscaling:DeleteLifecycleHook",
-                "autoscaling:DescribeAutoScalingGroups",
-                "autoscaling:DescribeLifecycleHooks",
-                "autoscaling:PutLifecycleHook",
-                "autoscaling:RecordLifecycleActionHeartbeat",
-                "autoscaling:CreateAutoScalingGroup",
-                "autoscaling:UpdateAutoScalingGroup",
-                "autoscaling:EnableMetricsCollection",
-                "autoscaling:DescribePolicies",
-                "autoscaling:DescribeScheduledActions",
-                "autoscaling:DescribeNotificationConfigurations",
-                "autoscaling:SuspendProcesses",
-                "autoscaling:ResumeProcesses",
-                "autoscaling:AttachLoadBalancers",
-                "autoscaling:AttachLoadBalancerTargetGroups",
-                "autoscaling:PutScalingPolicy",
-                "autoscaling:PutScheduledUpdateGroupAction",
-                "autoscaling:PutNotificationConfiguration",
-                "autoscaling:PutWarmPool",
-                "autoscaling:DescribeScalingActivities",
-                "autoscaling:DeleteAutoScalingGroup",
-                "ec2:DescribeInstances",
-                "ec2:DescribeInstanceStatus",
-                "ec2:TerminateInstances",
-                "tag:GetResources",
-                "sns:Publish",
-                "cloudwatch:DescribeAlarms",
-                "cloudwatch:PutMetricAlarm",
-                "elasticloadbalancing:DescribeLoadBalancers",
-                "elasticloadbalancing:DescribeInstanceHealth",
-                "elasticloadbalancing:RegisterInstancesWithLoadBalancer",
-                "elasticloadbalancing:DeregisterInstancesFromLoadBalancer",
-                "elasticloadbalancing:DescribeTargetGroups",
-                "elasticloadbalancing:DescribeTargetHealth",
-                "elasticloadbalancing:RegisterTargets",
-                "elasticloadbalancing:DeregisterTargets"
-            ],
-            "Resource": "*"
-        },
-       {
-            "Effect": "Allow",
-            "Action": [
-                "s3:*",
-                "s3-object-lambda:*"
-            ],
-            "Resource": "*"
-        },
-        {
-            "Sid": "VisualEditor0",
-            "Effect": "Allow",
-            "Action": [
-                "iam:PassRole",
-                "ec2:CreateTags",
-                "ec2:RunInstances"
-            ],
-            "Resource": "*"
-        }
-    ]
-}
-EOF
-}
 
   
+
+#ALB Security Group  
+resource "aws_security_group" "alb-sg" {
+  name        = format("%s-%s-alb-sg", var.Environment, var.app_name)
+  description = "alb-sg"
+  vpc_id      = var.vpc_id
+  ingress {
+    from_port   = 80
+    to_port     = 80
+    protocol    = "TCP"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  ingress {
+    from_port   = 443
+    to_port     = 443
+    protocol    = "TCP"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  ingress {
+    description = "ALL"
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  egress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  tags = {
+    Name        = "${var.app_name}-alb-sg"
+    Environment = var.Environment
+    Owner       = var.Owner
+  }
+}
   
 module "alb" {
   count              = var.alb_enable ? 1 : 0
@@ -349,47 +280,6 @@ module "alb" {
     Terraform   = var.Terraform
   }
 }
-
-#ALB Security Group  
-resource "aws_security_group" "alb-sg" {
-  name        = format("%s-%s-alb-sg", var.Environment, var.app_name)
-  description = "alb-sg"
-  vpc_id      = var.vpc_id
-  ingress {
-    from_port   = 80
-    to_port     = 80
-    protocol    = "TCP"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
-
-  ingress {
-    from_port   = 443
-    to_port     = 443
-    protocol    = "TCP"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
-
-  ingress {
-    description = "ALL"
-    from_port   = 0
-    to_port     = 0
-    protocol    = "-1"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
-
-  egress {
-    from_port   = 0
-    to_port     = 0
-    protocol    = "-1"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
-
-  tags = {
-    Name        = "${var.app_name}-alb-sg"
-    Environment = var.Environment
-    Owner       = var.Owner
-  }
-}  
 
 module "route53-record" {
   count           = var.route_enable ? 1 : 0
