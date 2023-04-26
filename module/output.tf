@@ -3,7 +3,6 @@ output "name_of_application" {
    value       = var.app_name
  }
 
-
 output "autoscaling_group_id" {
    description = "The autoscaling group ID"
    value       = module.asg.autoscaling_group_id
@@ -41,67 +40,67 @@ output "autoscaling_group_id" {
 
 output "lb_id" {
   description = "The ID and ARN of the load balancer we created."
-  value       = var.alb_enable ? module.alb[0].lb_id : null
+  value       = module.alb.lb_id 
 }
 
 output "lb_arn" {
   description = "The ID and ARN of the load balancer we created."
-  value       = var.alb_enable ? module.alb[0].lb_arn : null
+  value       = module.alb.lb_arn 
 }
 
 output "lb_dns_name" {
   description = "The DNS name of the load balancer."
-  value       = var.alb_enable ? module.alb[0].lb_dns_name : null
+  value       = module.alb.lb_dns_name 
 }
 
 output "lb_arn_suffix" {
   description = "ARN suffix of our load balancer - can be used with CloudWatch."
-  value       = var.alb_enable ? module.alb[0].lb_arn_suffix : null
+  value       =  module.alb.lb_arn_suffix
 }
 
 output "lb_zone_id" {
   description = "The zone_id of the load balancer to assist with creating DNS records."
-  value       = var.alb_enable ? module.alb[0].lb_zone_id : null
+  value       = module.alb.lb_zone_id
 }
 
 output "http_tcp_listener_arns" {
   description = "The ARN of the TCP and HTTP load balancer listeners created."
-  value       = var.alb_enable ? module.alb[0].http_tcp_listener_arns : null
+  value       = module.alb.http_tcp_listener_arns
 }
 
 output "http_tcp_listener_ids" {
   description = "The IDs of the TCP and HTTP load balancer listeners created."
-  value       = var.alb_enable ? module.alb[0].http_tcp_listener_ids : null
+  value       = module.alb.http_tcp_listener_ids
 }
 
 output "https_listener_arns" {
   description = "The ARNs of the HTTPS load balancer listeners created."
-  value       = var.alb_enable ? module.alb[0].https_listener_arns : null
+  value       = module.alb.https_listener_arns
 }
 
 output "https_listener_ids" {
   description = "The IDs of the load balancer listeners created."
-  value       = var.alb_enable ? module.alb[0].https_listener_ids : null
+  value       = module.alb.https_listener_ids 
 }
 
 output "target_group_arns" {
   description = "ARNs of the target groups. Useful for passing to your Auto Scaling group."
-  value       = var.alb_enable ? module.alb[0].target_group_arns : null
+  value       = module.alb.target_group_arns
 }
 
 output "target_group_arn_suffixes" {
   description = "ARN suffixes of our target groups - can be used with CloudWatch."
-  value       = var.alb_enable ? module.alb[0].target_group_arn_suffixes : null
+  value       = module.alb.target_group_arn_suffixes[0]
 }
 
 output "target_group_names" {
   description = "Name of the target group. Useful for passing to your CodeDeploy Deployment Group."
-  value       = var.alb_enable ? module.alb[0].target_group_names : null
+  value       =  module.alb.target_group_names
 }
 
 output "target_group_attachments" {
   description = "ARNs of the target group attachment IDs."
-  value       = var.alb_enable ? module.alb[0].target_group_attachments : null
+  value       = module.alb.target_group_attachments
 }
 
 
