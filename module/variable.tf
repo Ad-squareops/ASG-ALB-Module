@@ -23,84 +23,8 @@ variable "app_name" {
   default     = ""
 }
 
-variable "name" {
-  description = "Name of the Application"
-  type        = string
-  default     = ""
-}
-
-variable "region" {
-  description = "Region where resources to be deployed"
-  type        = string
-  default     = ""
-}
-
-
-# IAM role
-variable "iam_role_name" {
-  description = "Name to use on IAM role created"
-  type        = string
-  default     = null
-}
-
-variable "iam_role_path" {
-  description = "IAM role path"
-  type        = string
-  default     = null
-}
-
-variable "iam_role_description" {
-  description = "Description of the role"
-  type        = string
-  default     = null
-}
-
-variable "iam_role_policies" {
-  description = "IAM policies to attach to the IAM role"
-  type        = map(string)
-  default     = {}
-}
-
-
-variable "iam_role_tags" {
-  description = "A map of additional tags to add to the IAM role created"
-  type        = map(string)
-  default     = {}
-}
-
-variable "create_iam_instance_profile" {
-  description = "Determines whether an IAM instance profile is created or to use an existing IAM instance profile"
-  type        = bool
-  default     = false
-}
-
-variable "iam_instance_profile_arn" {
-  description = "Amazon Resource Name (ARN) of an existing IAM instance profile. Used when `create_iam_instance_profile` = `false`"
-  type        = string
-  default     = ""
-}
-
-
 
 #Launch Template 
-variable "launch_template_name" {
-  description = "Name of launch template to be created"
-  type        = string
-  default     = ""
-}
-
-variable "launch_template_description" {
-  description = "Description of the launch template"
-  type        = string
-  default     = "launch template example"
-}
-
-variable "update_default_version" {
-  description = "Whether to update Default Version each update. Conflicts with `default_version`"
-  type        = string
-  default     = true
-}
-
 variable "image_id" {
   description = "The AMI from which to launch the instance"
   type        = string
@@ -111,48 +35,6 @@ variable "instance_type" {
   description = "The type of the instance. If present then `instance_requirements` cannot be present"
   type        = string
   default     = "t3a.small"
-}
-
-variable "instance_name" {
-  description = "Name that is propogated to launched EC2 instances via a tag - if not provided, defaults to `var.name`"
-  type        = string
-  default     = ""
-}
-
-variable "key_name" {
-  description = "The key name that should be used for the instance"
-  type        = string
-  default     = ""
-}
-
-variable "enable_monitoring" {
-  description = "Enables/disables detailed monitoring"
-  type        = bool
-  default     = false
-}
-
-variable "ebs_optimized" {
-  description = "If true, the launched EC2 instance will be EBS-optimized"
-  type        = bool
-  default     = true
-}
-
-variable "instance_refresh" {
-  description = "If this block is configured, start an Instance Refresh when this Auto Scaling Group is updated"
-  type        = any
-  default     = {}
-}
-
-variable "security_groups" {
-  description = "A list of security group IDs to associate"
-  type        = list(string)
-  default     = []
-}
-
-variable "subnets" {
-  description = "A list of Public Subnets to associate"
-  type        = list(string)
-  default     = []
 }
 
 variable "tags" {
@@ -167,37 +49,8 @@ variable "vpc_id" {
   default     = ""
 }
 
-variable "sg_enable" {
-  type    = bool
-  default = true
-}
-
-variable "certificate_arn" {
-  type    = string
-  default = ""
-}
-
 #ASG
-variable "target_group_arns" {
-  description = "A set of `aws_alb_target_group` ARNs, for use with Application or Network Load Balancing"
-  type        = list(string)
-  default     = [] 
-}
-
-
-variable "target_group_arn" {
-  description = "Value of `aws_alb_target_group` ARNs, for use with Application or Network Load Balancer"
-  type        = list(string)
-  default     = []
-}
-
-variable "default_instance_warmup" {
-  description = "Amount of time, in seconds, until a newly launched instance can contribute to the Amazon CloudWatch metrics. This delay lets an instance finish initializing before Amazon EC2 Auto Scaling aggregates instance metrics, resulting in more reliable usage data. Set this value equal to the amount of time that it takes for resource consumption to become stable after an instance reaches the InService state."
-  type        = number
-  default     = null
-}
-
-variable "vpc_zone_identifier" {
+variable "private_subnets" {
   description = "A list of subnet IDs to launch resources in. Subnets automatically determine which availability zones the group will reside. Conflicts with `availability_zones`"
   type        = list(string)
   default     = null
@@ -222,22 +75,10 @@ variable "desired_capacity" {
   default     = null
 }
 
-variable "wait_for_capacity_timeout" {
-  description = ""
-  type        = number
-  default     = 0
-}
-
 variable "health_check_type" {
   description = ""
   type        = string
   default     = "EC2"
-}
-
-variable "enabled_metrics" {
-  description = "A list of metrics to collect. The allowed values are `GroupDesiredCapacity`, `GroupInServiceCapacity`, `GroupPendingCapacity`, `GroupMinSize`, `GroupMaxSize`, `GroupInServiceInstances`, `GroupPendingInstances`, `GroupStandbyInstances`, `GroupStandbyCapacity`, `GroupTerminatingCapacity`, `GroupTerminatingInstances`, `GroupTotalCapacity`, `GroupTotalInstances`"
-  type        = list(string)
-  default     = []
 }
 
 variable "asg_cpu_policy" {
@@ -255,37 +96,61 @@ variable "cpu_value_threshold" {
 variable "asg_ALB_request_count_policy" {
   description = ""
   type        = bool
-  default     = false
+  default     = true
 }
 
-variable "request_count_value_threshold" {
-  description = ""
+variable "target_value" {
+  description = "alb request count target value"
   type        = number
-  default     = 20
+  default     = 200
 }
 
-variable "asg_RAM_based_scale_up_policy" {
+variable "asg_RAM_based_scale_updown_policy" {
   description = "Enable or Disable RAM based utilization Policy"
   type        = bool
   default     = false
 }
 
-variable "threshold_to_scale_up" {
+variable "RAM_threshold_to_scale_up" {
   description = "Target value for RAM based utilization Policy"
   type        = number
-  default     = 20
+  default     = 70
 }
 
-variable "asg_RAM_based_scale_down_policy" {
-  description = "Enable or Disable RAM based utilization Policy"
-  type        = bool
-  default     = false
-}
-
-variable "threshold_to_scale_down" {
+variable "RAM_threshold_to_scale_down" {
   description = "Target value for RAM based utilization Policy"
   type        = number
   default     = 50
+}
+
+variable "asg_scale_updown_disk_usage_policy" {
+  description = "enable or disable disk based utilization Policy"
+  type        = bool
+  default     = false
+}
+
+variable "disk_threshold_to_scale_up" {
+  description = "Target value for disk based utilization Policy"
+  type        = number
+  default     = 70
+}
+
+variable "disk_threshold_to_scale_down" {
+  description = "Target value for disk based utilization Policy"
+  type        = number
+  default     = 50
+}
+
+variable "asg_SQS_based_policy" {
+  description = "enable or disable SQS based utilization Policy"
+  type        = bool
+  default     = false
+}
+
+variable "target_value_SQS" {
+  description = "target value SQS based utilization Policy"
+  type        = number
+  default     = 200
 }
 
 
@@ -327,12 +192,6 @@ variable "target_groups" {
   default     = []
 }
 
-variable "enabled" {
-  description = "health check enabled"
-  type        = bool
-  default     = true
-}
-
 variable "interval" {
   description = "health check interval"
   type        = number
@@ -343,18 +202,6 @@ variable "path" {
   description = "health check path"
   type        = string
   default     = "/"
-}
-
-variable "healthy_threshold" {
-  description = "health check healthy_threshold"
-  type        = number
-  default     = 2
-}
-
-variable "unhealthy_threshold" {
-  description = "health check unhealthy_threshold"
-  type        = number
-  default     = 3
 }
 
 variable "protocol" {
@@ -369,53 +216,23 @@ variable "matcher" {
   default     = 200
 }
 
-variable "https_listeners" {
-  description = "A list of maps describing the HTTPS listeners for this ALB. Required key/values: port, certificate_arn. Optional key/values: ssl_policy (defaults to ELBSecurityPolicy-2016-08), target_group_index (defaults to https_listeners[count.index])"
-  type        = any
-  default     = []
+variable "stickiness_enabled" {
+  description = "stickiness enabled or disable"
+  type        = bool
+  default     = false
 }
 
-variable "http_tcp_listeners" {
-  description = "A list of maps describing the HTTP listeners or TCP ports for this ALB. Required key/values: port, protocol. Optional key/values: target_group_index (defaults to http_tcp_listeners[count.index])"
-  type        = any
-  default     = []
+variable "cookie_duration" {
+  description = "stickiness cookie duration"
+  type        = number
+  default     = 500
 }
 
-variable "https_listener_rules" {
-  description = "A list of maps describing the Listener Rules for this ALB. Required key/values: actions, conditions. Optional key/values: priority, https_listener_index (default to https_listeners[count.index])"
-  type        = any
-  default     = []
+variable "stickiness_type" {
+  description = "stickiness stickiness type - lb_cookie or app_cookie"
+  type        = string
+  default     = "lb_cookie"
 }
-
-variable "http_tcp_listener_rules" {
-  description = "A list of maps describing the Listener Rules for this ALB. Required key/values: actions, conditions. Optional key/values: priority, http_tcp_listener_index (default to http_tcp_listeners[count.index])"
-  type        = any
-  default     = []
-}
-
-
-
-#route53
-variable "route_enable" {
-  type    = bool
-  default = true
-}
-
-variable "hosted_zone_id" {
-  type    = string
-  default = "hosted_zone_id"
-}
-
-variable "lb_dnsname" {
-  type    = string
-  default = ""
-}
-
-variable "alb_enable" {
-  type    = bool
-  default = true
-}
-
 
 
 #acm
@@ -429,21 +246,4 @@ variable "zone_id" {
   description = "ID of DNS zone"
   type        = string
   default     = null
-}
-
-variable "subject_alternative_names" {
-  description = "A list of domains that should be SANs in the issued certificate"
-  type        = list(string)
-  default     = []
-}
-
-variable "host_headers" {
-  description = "A domain name for which the certificate should be issued"
-  type        = string
-  default     = ""
-}
-
-variable "cert_enable" {
-  type    = bool
-  default = true
 }
